@@ -1,0 +1,14 @@
+This folder holds three types of files:
+
+A polygon file has the name "<obstacleName>_polygon.txt", and it is the input to the the algorithm.
+It determines an obstacle as a polygon on the plane, defined by the 2D coordinates of the vertices of the obstacle.
+Note the vertices must be given as a counterclockwise traversal of the boundary of the polygon
+
+An edge file has the name "<obstacleName>_edges.txt", and it contains all the candidate skeleton edges of the given obstacle.
+A subset of these edges must contain a minimum euclidean skeleton; that is this is a list of all canonical edges.
+The file contains information on the starting and endpoints of the edge, as well as its type (1, 2, 3 or 4), and whether it
+can be pruned. An edge e can be pruned if there exists a different edge f so that f intersects every edge which intersects e, 
+and it itersects any convex vertex that e intersects
+
+An heurisitc edge file has the name "<obstacleName>_edges_heur.txt" and contains the same information as the edge file, but 
+will not contain any auxiliary (i.e. Type 4) edges.

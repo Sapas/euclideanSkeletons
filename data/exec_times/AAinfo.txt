@@ -1,0 +1,1 @@
+This folder will hold the time information on any given run; this is used by the R script to calculate total computation time.
