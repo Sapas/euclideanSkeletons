@@ -1,7 +1,11 @@
 **.DS_Store
+# Ignore the executable
+cpp_code/skeleton
+# Ignore R code history
+R_code/.Rapp.history
+# Ignore itermediate data, except info of each folder
 data/exec_times/
 data/polygon/
 data/STP_input/
 data/STP_output/
 !AAinfo.txt
-cpp_code/skeleton
