@@ -1,6 +1,7 @@
 **.DS_Store
-data/exec_times/run*
-data/polygon/random*
-data/STP_input/random*
-data/STP_output/random*
+data/exec_times/
+data/polygon/
+data/STP_input/
+data/STP_output/
+!AAinfo.txt
 cpp_code/skeleton
