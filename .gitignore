@@ -1,1 +1,4 @@
 **.DS_Store
+data/exec_times/*
+data/polygon/*
+data/STP_input/*
