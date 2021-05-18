@@ -3,14 +3,20 @@
 
 # Update sudo
 sudo apt update
-# Install make 
-# sudo apt install make
-# Install c compiler
-# sudo apt install gcc
 # Install g++
 sudo apt install g++
-# Get the eigen library
-# sudo apt install libeigen3-dev
+# Install R
+sudo apt-get install r-base
+# Install required R packages
+sudo apt install build-essential
+sudo apt-get install -y libxml2-dev libcurl4-openssl-dev libssl-dev
+sudo -i R
+install.packages("libcurl4-openssl-dev")
+install.packages("tidyverse")
+install.packages("dplyr")
+install.packages("pracma")
+q()
+n
 
 
 
@@ -24,6 +30,10 @@ sudo apt install g++
 
 # installing and running solver (stay_nerd): instructions can be found here: 
 # https://homepage.univie.ac.at/ivana.ljubic/research/staynerd/StayNerd.html
+
+
+
+
 
 # installing g++ compiler in linux:
 # https://linuxconfig.org/how-to-install-g-the-c-compiler-on-ubuntu-18-04-bionic-beaver-linux
