@@ -20,6 +20,14 @@ n
 # Install cplex with academic initiative. Included the installer, but might need to get it again
 # https://www.ibm.com/support/pages/installation-ibm-ilog-cplex-optimization-studio-linux-platforms
 # https://feed.moopt.com/cplex-optimization-studio-for-students-and-academics/
+# First need to get git lfs in order to have access to cplex installer
+curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
+sudo apt-get install git-lfs
+git lfs install
+git lfs fetch --all
+# By this point, should have binary file in cplex folder, allow access and run
+chmod +x cplex/cplex_studio1263.linux-x86-64.bin
+
 
 
 
