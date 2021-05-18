@@ -17,6 +17,9 @@ install.packages("dplyr")
 install.packages("pracma")
 q()
 n
+# Install cplex with academic initiative. Included the installer, but might need to get it again
+# https://www.ibm.com/support/pages/installation-ibm-ilog-cplex-optimization-studio-linux-platforms
+# https://feed.moopt.com/cplex-optimization-studio-for-students-and-academics/
 
 
 
