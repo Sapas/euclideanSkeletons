@@ -14,7 +14,7 @@ seed_min=1
 seed_max=50
 print_info="true"
 run_heuristic="true"
-create_graphs=1
+create_graphs=0
 
 # NO CHANGES PAST THIS POINT
 
