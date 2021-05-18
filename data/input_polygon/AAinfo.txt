@@ -1,0 +1,3 @@
+This folder holds special cases for inputs to the algorithm. These are obstacles are defined by their vertices
+in the plane (i.e. x and y coordinate). Note that the algorithm itself deals with finding the correct counterclockwise
+traversal of the vertices, so don't need to worry about that in these files. Simply specify the nodes in some order.

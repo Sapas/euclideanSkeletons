@@ -1,0 +1,3 @@
+This file contains the output of the second part of the algorithm. After finding all the candidate skeleton edges of a polygon,
+the algorithm transforms the problem into a Graph Minimum Steiner Tree problem. The files in this folder are the output of the
+steiner tree solver.

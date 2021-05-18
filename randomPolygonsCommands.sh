@@ -38,7 +38,7 @@ g++ cpp_code/skeleton.cpp -o cpp_code/skeleton
 #    done
 #done
 
-#Rscript R_code/randomPolygonsAnalysis.R $n_start $n_end $n_interval $seed_min $seed_max $create_graphs
+Rscript R_code/randomPolygonsAnalysis.R $n_start $n_end $n_interval $seed_min $seed_max $create_graphs
 
 
 end=`date +%s`

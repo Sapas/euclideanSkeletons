@@ -1,0 +1,15 @@
+"x" "y" "convex"
+-2 -5 TRUE
+-2 -1.5 FALSE
+1 1 FALSE
+4 -1.5 FALSE
+4 -5 TRUE
+7 -2.2 FALSE
+9 -2 TRUE
+7 -2 FALSE
+1.1 4 FALSE
+1 6 TRUE
+0.9 4 FALSE
+-5 -2 FALSE
+-7 -2 TRUE
+-5 -2.2 FALSE
