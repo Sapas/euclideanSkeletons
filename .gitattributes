@@ -1,1 +1,1 @@
-cplex/ILOG_COS_20.10_LINUX_X86_64.bin filter=lfs diff=lfs merge=lfs -text
+cplex/cplex_studio1263.linux-x86-64.bin filter=lfs diff=lfs merge=lfs -text
