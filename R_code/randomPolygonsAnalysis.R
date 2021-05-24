@@ -28,9 +28,9 @@ if(disp > 0.5){
     }
 }
 
-#solution_time(n_start, n_end, n_interval, s_start, s_end)
-#edge_analysis(n_start, n_end, n_interval, s_start, s_end)
-#infeasibility_analysis(n_start, n_end, n_interval, s_start, s_end)
-#size_analysis(n_start, n_end, n_interval, s_start, s_end)
+solution_time(n_start, n_end, n_interval, s_start, s_end)
+edge_analysis(n_start, n_end, n_interval, s_start, s_end)
+infeasibility_analysis(n_start, n_end, n_interval, s_start, s_end)
+size_analysis(n_start, n_end, n_interval, s_start, s_end)
 
 

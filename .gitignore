@@ -5,6 +5,8 @@ cpp_code/skeleton
 R_code/.Rapp.history
 # Ignore cplex installer, should move around using scp
 cplex/*
+# Ignore stay_nerd folder, should follow instructions on how to use this
+steiner_solver/*
 # Ignore itermediate data, except info of each folder
 data/exec_times/
 data/polygon/

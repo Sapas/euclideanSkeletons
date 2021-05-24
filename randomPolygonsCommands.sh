@@ -28,15 +28,15 @@ g++ cpp_code/skeleton.cpp -o cpp_code/skeleton
 ./cpp_code/skeleton $n_start $n_end $n_interval $seed_min $seed_max $run_heuristic $print_info
 
 # Finally, cycle through outputs and call solver
-#for ((n = $n_start; n <= $n_end; n = n + $n_interval)); do
-#    for ((s = $seed_min; s <= $seed_max; s++)); do
-#        ./steiner_solver/staynerd data/STP_input/random_n${n}_s${s}_STP_format_1-2.txt 100000 1 data/STP_output/random_n${n}_s${s}_output_STP_format_1-2.txt
-#		./steiner_solver/staynerd data/STP_input/random_n${n}_s${s}_STP_format_1-2-3.txt 100000 1 data/STP_output/random_n${n}_s${s}_output_STP_format_1-2-3.txt 
-#		./steiner_solver/staynerd data/STP_input/random_n${n}_s${s}_STP_format_1-2-3_pruned.txt 100000 1 data/STP_output/random_n${n}_s${s}_output_STP_format_1-2-3_pruned.txt 
-#		./steiner_solver/staynerd data/STP_input/random_n${n}_s${s}_STP_format_all.txt 100000 1 data/STP_output/random_n${n}_s${s}_output_STP_format_all.txt 
-#		./steiner_solver/staynerd data/STP_input/random_n${n}_s${s}_STP_format_pruned.txt 100000 1 data/STP_output/random_n${n}_s${s}_output_STP_format_pruned.txt 
-#    done
-#done
+for ((n = $n_start; n <= $n_end; n = n + $n_interval)); do
+    for ((s = $seed_min; s <= $seed_max; s++)); do
+        ./steiner_solver/staynerd data/STP_input/random_n${n}_s${s}_STP_format_1-2.txt 100000 1 data/STP_output/random_n${n}_s${s}_output_STP_format_1-2.txt
+		./steiner_solver/staynerd data/STP_input/random_n${n}_s${s}_STP_format_1-2-3.txt 100000 1 data/STP_output/random_n${n}_s${s}_output_STP_format_1-2-3.txt 
+		./steiner_solver/staynerd data/STP_input/random_n${n}_s${s}_STP_format_1-2-3_pruned.txt 100000 1 data/STP_output/random_n${n}_s${s}_output_STP_format_1-2-3_pruned.txt 
+		./steiner_solver/staynerd data/STP_input/random_n${n}_s${s}_STP_format_all.txt 100000 1 data/STP_output/random_n${n}_s${s}_output_STP_format_all.txt 
+		./steiner_solver/staynerd data/STP_input/random_n${n}_s${s}_STP_format_pruned.txt 100000 1 data/STP_output/random_n${n}_s${s}_output_STP_format_pruned.txt 
+    done
+done
 
 Rscript R_code/randomPolygonsAnalysis.R $n_start $n_end $n_interval $seed_min $seed_max $create_graphs
 

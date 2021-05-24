@@ -22,11 +22,11 @@ g++ cpp_code/skeleton.cpp -o cpp_code/skeleton
 ./cpp_code/skeleton $polygon_name $print_info
 
 
-#./steiner_solver/staynerd data/STP_input/${polygon_name}_STP_format_1-2.txt 100 1 data/STP_output/${polygon_name}_output_STP_format_1-2.txt 
-#./steiner_solver/staynerd data/STP_input/${polygon_name}_STP_format_1-2-3.txt 100 1 data/STP_output/${polygon_name}_output_STP_format_1-2-3.txt 
-#./steiner_solver/staynerd data/STP_input/${polygon_name}_STP_format_1-2-3.txt 100 1 data/STP_output/${polygon_name}_output_STP_format_1-2-3_pruned.txt 
-#./steiner_solver/staynerd data/STP_input/${polygon_name}_STP_format_all.txt 100 1 data/STP_output/${polygon_name}_output_STP_format_all.txt 
-#./steiner_solver/staynerd data/STP_input/${polygon_name}_STP_format_pruned.txt 100 1 data/STP_output/${polygon_name}_output_STP_format_pruned.txt 
+./steiner_solver/staynerd data/STP_input/${polygon_name}_STP_format_1-2.txt 100 1 data/STP_output/${polygon_name}_output_STP_format_1-2.txt 
+./steiner_solver/staynerd data/STP_input/${polygon_name}_STP_format_1-2-3.txt 100 1 data/STP_output/${polygon_name}_output_STP_format_1-2-3.txt 
+./steiner_solver/staynerd data/STP_input/${polygon_name}_STP_format_1-2-3.txt 100 1 data/STP_output/${polygon_name}_output_STP_format_1-2-3_pruned.txt 
+./steiner_solver/staynerd data/STP_input/${polygon_name}_STP_format_all.txt 100 1 data/STP_output/${polygon_name}_output_STP_format_all.txt 
+./steiner_solver/staynerd data/STP_input/${polygon_name}_STP_format_pruned.txt 100 1 data/STP_output/${polygon_name}_output_STP_format_pruned.txt 
 
 
 Rscript R_code/readinPolygonsAnalysis.R $polygon_name

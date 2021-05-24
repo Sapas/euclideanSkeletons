@@ -5,5 +5,5 @@ args = commandArgs(trailingOnly=TRUE)
 
 filename <- args[1]
 plot_types(filename)
-#plot_solution(filename)
-#plot_heuristic_solution(filename)
+plot_solution(filename)
+plot_heuristic_solution(filename)
