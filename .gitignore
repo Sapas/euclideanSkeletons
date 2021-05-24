@@ -3,6 +3,8 @@
 cpp_code/skeleton
 # Ignore R code history
 R_code/.Rapp.history
+# Ignore cplex installer, should move around using scp
+cplex/*
 # Ignore itermediate data, except info of each folder
 data/exec_times/
 data/polygon/
