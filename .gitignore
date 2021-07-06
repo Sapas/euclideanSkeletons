@@ -14,4 +14,4 @@ data/plots/
 data/polygon/
 data/STP_input/
 data/STP_output/
-!AAinfo.txt
+!**/AAinfo.txt
