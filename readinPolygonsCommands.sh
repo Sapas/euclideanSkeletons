@@ -9,7 +9,7 @@
 
 # ATTENTION: Only change the name of the polygon file (excluding the .txt)
 polygon_name="spike"
-print_info="true"
+print_info="false"
 # NO CHANGES PAST THIS POINT
 
 # Get time
@@ -23,13 +23,13 @@ g++ cpp_code/skeleton.cpp -o cpp_code/skeleton
 
 
 ./steiner_solver/staynerd data/STP_input/${polygon_name}_STP_format_1-2.txt 100 1 data/STP_output/${polygon_name}_output_STP_format_1-2.txt 
-./steiner_solver/staynerd data/STP_input/${polygon_name}_STP_format_1-2-3.txt 100 1 data/STP_output/${polygon_name}_output_STP_format_1-2-3.txt 
-./steiner_solver/staynerd data/STP_input/${polygon_name}_STP_format_1-2-3.txt 100 1 data/STP_output/${polygon_name}_output_STP_format_1-2-3_pruned.txt 
-./steiner_solver/staynerd data/STP_input/${polygon_name}_STP_format_all.txt 100 1 data/STP_output/${polygon_name}_output_STP_format_all.txt 
-./steiner_solver/staynerd data/STP_input/${polygon_name}_STP_format_pruned.txt 100 1 data/STP_output/${polygon_name}_output_STP_format_pruned.txt 
+#./steiner_solver/staynerd data/STP_input/${polygon_name}_STP_format_1-2-3.txt 100 1 data/STP_output/${polygon_name}_output_STP_format_1-2-3.txt 
+#./steiner_solver/staynerd data/STP_input/${polygon_name}_STP_format_1-2-3.txt 100 1 data/STP_output/${polygon_name}_output_STP_format_1-2-3_pruned.txt 
+#./steiner_solver/staynerd data/STP_input/${polygon_name}_STP_format_all.txt 100 1 data/STP_output/${polygon_name}_output_STP_format_all.txt 
+#./steiner_solver/staynerd data/STP_input/${polygon_name}_STP_format_pruned.txt 100 1 data/STP_output/${polygon_name}_output_STP_format_pruned.txt 
 
 
-Rscript R_code/readinPolygonsAnalysis.R $polygon_name
+#Rscript R_code/readinPolygonsAnalysis.R $polygon_name
 
 end=`date +%s`
 echo "Total execution time: $((end-start)) seconds"

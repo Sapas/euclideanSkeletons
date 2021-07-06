@@ -1,5 +1,6 @@
 library(dplyr)
 library(pracma)
+library(tidyverse)
 # First of all, want a a function which compares time taken to find a solution, prune vs not prune
 # Write a function to find the solver time taken
 avg_solver_time <- function(n, s_start, s_end, endFile){
@@ -16,6 +17,18 @@ avg_solver_time <- function(n, s_start, s_end, endFile){
 	}
 	time <- time / (s_end - s_start + 1)
 	return(time)		
+}
+
+# Another function to extract time taken for a specified file name
+extract_solver_time <- function(filename){
+  con <- file(filename, "r")
+  while(!strcmp(readLines(con, n = 1), "SECTION Run")){}
+  # Read an extra one
+  readLines(con, n = 1)
+  # Care about this one
+  time <- as.numeric(gsub("Time", "", readLines(con, n = 1)))
+  close(con)
+  return(time)
 }
 
 solution_time <- function(n_start, n_end, n_interval, s_start, s_end){
@@ -79,4 +92,67 @@ solution_time <- function(n_start, n_end, n_interval, s_start, s_end){
     legend("topleft", c("Pruned", "Restricted-type", "Restricted-type pruned"), col = c("blue", "purple3", "red"), pch = c(22, 23, 24))
     axis(1, at = x)
     out <- dev.off()
+    
+    # Adding an option where what is shown is percentage improvement over slowest, and percentage increase over fastest
+    # Will want statistical measures, so have to do it per entry
+    # Try something different
+    timeData <- data.frame(matrix(ncol = 5, nrow = 0))
+    row <- 1
+    for(n in seq(n_start, n_end, n_interval)){
+      for(s in s_start:s_end){
+        # Extract the required times
+        timeStandard <- sum(times[times$n == n & times$seed == s, c("find_convex", "find_edges", "STP_intersection", "polygon_file", "STP_file")]) + 
+          extract_solver_time(paste0("data/STP_output/random_n",n,"_s",s,"_output_STP_format_all.txt"))
+        
+        timePruned <- sum(times[times$n == n & times$seed == s, c("find_convex", "find_edges", "prune_edges", "STP_intersection", "polygon_file", "STP_file")]) + 
+          extract_solver_time(paste0("data/STP_output/random_n",n,"_s",s,"_output_STP_format_pruned.txt"))
+        
+        timeHeur <- sum(times_heur[times_heur$n == n & times_heur$seed == s, c("find_convex", "find_edges", "STP_intersection", "polygon_file", "STP_file")]) +
+          extract_solver_time(paste0("data/STP_output/random_n",n,"_s",s,"_output_STP_format_1-2-3.txt"))
+        
+        timeHeurPruned <- sum(times_heur[times_heur$n == n & times_heur$seed == s, c("find_convex", "find_edges", "prune_edges", "STP_intersection", "polygon_file", "STP_file")]) +
+          extract_solver_time(paste0("data/STP_output/random_n",n,"_s",s,"_output_STP_format_1-2-3_pruned.txt"))
+        
+        best <- min(timeStandard, timePruned, timeHeur, timeHeurPruned)
+        worst <- max(timeStandard, timePruned, timeHeur, timeHeurPruned)
+        
+        timeData[row, ] <- c(n, s, timeStandard, "Unpruned", "time")
+        timeData[row + 1, ] <- c(n, s, timePruned, "Pruned", "time")
+        timeData[row + 2, ] <- c(n, s, timeHeur, "Restricted-type", "time")
+        timeData[row + 3, ] <- c(n, s, timeHeurPruned, "Restricted-type Pruned", "time")
+        
+        timeData[row + 4, ] <- c(n, s, 100 * (timeStandard - best)/best, "Unpruned", "BestComp")
+        timeData[row + 5, ] <- c(n, s, 100 * (timePruned - best)/best, "Pruned", "BestComp")
+        timeData[row + 6, ] <- c(n, s, 100 * (timeHeur - best)/best, "Restricted-type", "BestComp")
+        timeData[row + 7, ] <- c(n, s, 100 * (timeHeurPruned - best)/best, "Restricted-type Pruned", "BestComp")
+        
+        timeData[row + 8, ] <- c(n, s, 100 * (worst - timeStandard) / worst, "Unpruned", "WorstComp")
+        timeData[row + 9, ] <- c(n, s, 100 * (worst - timePruned) / worst, "Pruned", "WorstComp")
+        timeData[row + 10, ] <- c(n, s, 100 * (worst - timeHeur) / worst, "Restricted-type", "WorstComp")
+        timeData[row + 11, ] <- c(n, s, 100 * (worst - timeHeurPruned) / worst, "Restricted-type Pruned", "WorstComp")
+        
+        row <- row + 12
+      }
+    }
+    colnames(timeData) <- c("n", "seed", "time", "Algorithm", "valType")
+    timeData <- rbind(rbind(rbind(timeData[timeData$Algorithm == "Unpruned", ], timeData[timeData$Algorithm == "Pruned", ]), timeData[timeData$Algorithm == "Restricted-type", ]), timeData[timeData$Algorithm == "Restricted-type Pruned", ])
+    timeData$time <- as.numeric(timeData$time)
+    
+    subsetData <- timeData[timeData$valType == "BestComp", ]
+    ggplot(subsetData, aes(x=n, y=time, fill=Algorithm)) +
+      geom_boxplot() + 
+      scale_fill_grey(name = "Algorithm", labels = c("Unpruned", "Pruned", "Restricted-type", "Restricted-type Pruned")) +
+      labs(x = "Polygon size", y = "Percentage increase over best algorithm")
+    ggsave(paste0("data/analysis_plots/n",n_start,"<-",n_interval,"->",n_end,"_s",s_start,"<->",s_end,"_solve_times_box_plot_bestComp.png"))
+    
+    subsetData <- timeData[timeData$valType == "WorstComp", ]
+    ggplot(subsetData, aes(x=n, y=time, fill=Algorithm)) +
+      geom_boxplot() + 
+      scale_fill_grey(name = "Algorithm", labels = c("Unpruned", "Pruned", "Restricted-type", "Restricted-type Pruned")) +
+      labs(x = "Polygon size", y = "Percentage improvement over worst algorithm")
+    ggsave(paste0("data/analysis_plots/n",n_start,"<-",n_interval,"->",n_end,"_s",s_start,"<->",s_end,"_solve_times_box_plot_worstComp.png"))
+    
+    return(timeData)
 }
+
+data <- solution_time(10, 50, 10, 1, 50)

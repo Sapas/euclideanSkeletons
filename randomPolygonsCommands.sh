@@ -8,7 +8,7 @@
 # ATTENTION: Only change the values under this statement
 
 n_start=10
-n_end=10
+n_end=50
 n_interval=10
 seed_min=1
 seed_max=50
