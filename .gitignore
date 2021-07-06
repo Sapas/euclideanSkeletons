@@ -8,9 +8,9 @@ cplex/*
 # Ignore stay_nerd folder, should follow instructions on how to use this
 steiner_solver/*
 # Ignore itermediate data, except info of each folder
-data/analysis_plots/
+#data/analysis_plots/
 data/exec_times/
-data/plots/
+#data/plots/
 data/polygon/
 data/STP_input/
 data/STP_output/

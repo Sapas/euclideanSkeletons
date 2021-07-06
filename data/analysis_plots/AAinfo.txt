@@ -1,0 +1,1 @@
+This folder will hold the graphs created by the R scripts after execution of a run
