@@ -33,7 +33,20 @@ scp -r *.cpp *.h nandres@spartan.hpc.unimelb.edu.au:/data/gpfs/projects/punim148
 
 # Transfer all data in data folder, should only want to do this once
 # Navigate to euclideanSkeletons/data/ and call
-scp -r . nandres@spartan.hpc.unimelb.edu.au:/data/gpfs/projects/punim1489/euclideanSkeletons/data/ 
+scp -r . nandres@spartan.hpc.unimelb.edu.au:/data/gpfs/projects/punim1489/euclideanSkeletons/data/
+# Actually might not be a bad idea just transferring all data back
+# Be careful to navigate to euclideanSkeletons/ (i.e. parent folder) and call
+scp -r nandres@spartan.hpc.unimelb.edu.au:/data/gpfs/projects/punim1489/euclideanSkeletons/data/ .
+
+# Doing something a bit more subtle, three commands to transfer the required files from three different folders
+# Navigate to euclideanSkeletons/data/clusterResults/ and call
+scp nandres@spartan.hpc.unimelb.edu.au:/data/gpfs/projects/punim1489/euclideanSkeletons/data/clusterResults/largeRunUniform* .
+# Navigate to euclideanSkeletons/data/polygon/ and call
+scp nandres@spartan.hpc.unimelb.edu.au:/data/gpfs/projects/punim1489/euclideanSkeletons/data/polygon/uniform* .
+# Navigate to euclideanSkeletons/data/STP_input/ and call
+scp nandres@spartan.hpc.unimelb.edu.au:/data/gpfs/projects/punim1489/euclideanSkeletons/data/STP_input/uniform* .
+# Navigate to euclideanSkeletons/data/STP_output/ and call
+scp nandres@spartan.hpc.unimelb.edu.au:/data/gpfs/projects/punim1489/euclideanSkeletons/data/STP_output/uniform* .
 
 # Transfer required steiner_solver files
 # Navigate to euclideanSkeletons/steiner_solver/ and call
@@ -43,62 +56,9 @@ scp make_cplex_shared.sh staynerd staynerd.license nandres@spartan.hpc.unimelb.e
 # Navigate to euclideanSkeletons/ and call
 scp randomPolygonsCommands.sh readinPolygonsCommands.sh nandres@spartan.hpc.unimelb.edu.au:/data/gpfs/projects/punim1489/euclideanSkeletons/ 
 
-
-
 # Transfer cluster run and setup files
-# Navigate to euclideanSkeletons/setup/ and call
-scp clusterRun.sh nandres@spartan.hpc.unimelb.edu.au:/data/gpfs/projects/punim1489/euclideanSkeletons/setup/
-
-
-
-
-# Transfer new run scripts
-# Navigate to bifiEBBO/data/runScripts/
-# Specify function, this is just an example
-scp modelPerformanceSetup.txt nandres@spartan.hpc.unimelb.edu.au:/data/gpfs/projects/punim1489/bifiEBBO/data/runScripts/
-# To transfer all scripts
-scp *.txt nandres@spartan.hpc.unimelb.edu.au:/data/gpfs/projects/punim1489/bifiEBBO/data/runScripts/
-# Again, this should prompt a password
-
-# Might want to transfer clusterRun files 
-# Navigate to bifiEBBO/setup/
-scp clusterRun.sh nandres@spartan.hpc.unimelb.edu.au:/data/gpfs/projects/punim1489/bifiEBBO/setup/
-scp longClusterRun.sh nandres@spartan.hpc.unimelb.edu.au:/data/gpfs/projects/punim1489/bifiEBBO/setup/
-# Again, both should prompt a password
-
-# After doing all of this, normally should want to run some experiments.
-# First of all will want to recompile code if something changed
-# Navigate to bifiEBBO/cpp_code/ in the cluster
-# Will need to load the required modules
-module load gcccore/10.2.0
-module load cmake/3.18.4
-module load eigen/3.3.8
-# Now can make executable
-make lin
-
-# Everything should be ready to run the preliminary run to make sure all is well.
-# Navigate to the bifiEBBO/setup/ in the cluster
-# Then run the set of commands (this file should only have 5 array jobs or so, something small)
-# Submit the job
-sbatch clusterRun.sh
-
-# To check status, can do 
-squeue -u nandres
-
-# Also keep in mind you can look at the output of the code by calling the following (edit file name)
-cat slurm-26411012_1.out
-
-# Once all seems to be working, call the long run
-sbatch clusterRunLong.sh
-
-# Make sure to remove all the output files when you are sure you do not need them
-rm slurm*
-
-# Finally, will probably want to move the resulting data back to the machine. 
-# To do so, navigate to bifiEBBO/data/ and call
-scp -r nandres@spartan.hpc.unimelb.edu.au:/data/gpfs/projects/punim1489/bifiEBBO/data/clusterResults/ .
-# Should be prompted by password
-
+# Navigate to euclideanSkeletons/setup/ and call (note it is the head folder, things are wired to run this way)
+scp *.sh nandres@spartan.hpc.unimelb.edu.au:/data/gpfs/projects/punim1489/euclideanSkeletons/
 
 
 

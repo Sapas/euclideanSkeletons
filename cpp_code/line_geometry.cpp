@@ -19,13 +19,58 @@ bool onSegment(Point* p, Point* q, Point* r){
         q->y <= max(p->y, r->y) && q->y >= min(p->y, r->y)) 
        return true; 
     return false; 
-} 
-int orientation(Point* p, Point* q, Point* r){ 
+}
+
+double angle(Point* p, Point* q, Point* r){
+    // First check points are different, if not say the angle is 0
+    if((abs(p->x - q->x) < 0.00000000000001 && abs(p->y - q->y) < 0.00000000000001) ||
+        (abs(p->x - r->x) < 0.00000000000001 && abs(p->y - r->y) < 0.00000000000001) ||
+        (abs(r->x - q->x) < 0.00000000000001 && abs(r->y - q->y) < 0.00000000000001)){
+        // printf("Colinear by default as same value!\n");
+        return 0;
+    }
+    double inside = ((p->x - q->x)*(r->x - q->x) + (p->y - q->y)*(r->y - q->y))/(sqrt(pow(p->x - q->x, 2) + pow(p->y - q->y, 2))*sqrt(pow(r->x - q->x, 2) + pow(r->y - q->y, 2)));
+    // if(abs(inside - 1) < 0.0000000000000000000001 || inside > 1){
+    if(abs(inside - 1) < 0.000000000000001){
+        // printf("Values are %.20f, %.20f, %.20f, %.20f\n", ((p->x - q->x)*(r->x - q->x) + (p->y - q->y)*(r->y - q->y)),
+        //                                             sqrt(pow(p->x - q->x, 2) + pow(p->y - q->y, 2)),
+        //                                             sqrt(pow(r->x - q->x, 2) + pow(r->y - q->y, 2)),
+        //                                             inside);
+        return 0;
+    }
+    if(abs(inside + 1) < 0.000000000000001 || inside < -1){return M_PI;}
+
+    double val = acos(((p->x - q->x)*(r->x - q->x) + (p->y - q->y)*(r->y - q->y))/(sqrt(pow(p->x - q->x, 2) + pow(p->y - q->y, 2))*sqrt(pow(r->x - q->x, 2) + pow(r->y - q->y, 2))));
+    if(isnan(val)){printf("Got na when calculating angle! Checked (%.2f, %.2f), (%.2f, %.2f), (%.2f, %.2f), got %.2f (top %.2f, bottom 1 %.2f, bottom 2 %.2f, inside %.40f\n", p->x, p->y, q->x, q->y, r->x, r->y, val,
+                                                    ((p->x - q->x)*(r->x - q->x) + (p->y - q->y)*(r->y - q->y)),
+                                                    sqrt(pow(p->x - q->x, 2) + pow(p->y - q->y, 2)),
+                                                    sqrt(pow(r->x - q->x, 2) + pow(r->y - q->y, 2)),
+                                                    inside);}
+    return val;
+}
+
+int orientation(Point* p, Point* q, Point* r){
+    // First check points are different, if not say the angle is 0
+    if((abs(p->x - q->x) < 0.00000000000001 && abs(p->y - q->y) < 0.00000000000001) ||
+        (abs(p->x - r->x) < 0.00000000000001 && abs(p->y - r->y) < 0.00000000000001) ||
+        (abs(r->x - q->x) < 0.00000000000001 && abs(r->y - q->y) < 0.00000000000001)){
+        // printf("Colinear by default as same value!\n");
+        return 0;
+    }
+    // Next check colinear by looking at angle, only care if colinear so no need to actually calculate it
+    double inside = ((p->x - q->x)*(r->x - q->x) + (p->y - q->y)*(r->y - q->y))/(sqrt(pow(p->x - q->x, 2) + pow(p->y - q->y, 2))*sqrt(pow(r->x - q->x, 2) + pow(r->y - q->y, 2)));
+    if(abs(inside - 1) < 0.000000000000001){return 0;}
+    if(abs(inside + 1) < 0.000000000000001){return 0;}
+    // Now use this formula, should never get colinear (as it should have been reported above)
     // See https://www.geeksforgeeks.org/orientation-3-ordered-points/ 
     // for details of below formula. 
     double val = (q->y - p->y) * (r->x - q->x) - 
               (q->x - p->x) * (r->y - q->y); 
-    if (abs(val) < 0.0001) return 0;  // colinear 
+    if(abs(val) < 0.00000000000001){
+        printf("Weird, got colinear but angle seems to contradict this! For points (%.2f, %.2f), (%.2f, %.2f), (%.2f, %.2f), got val %.20f, angle %.20f and inside %.20f.\n", p->x, p->y, q->x, q->y, r->x, r->y, val, angle(p, q, r), inside);
+        return 0;
+    }  
+    // colinear
   
     return (val > 0)? 1: 2; // clock or counterclock wise 
 }
@@ -49,7 +94,6 @@ bool doIntersect(Point* p1, Point* q1, Point* p2, Point* q2){
     // General case 
     if (o1 != o2 && o3 != o4) 
         return true; 
-  
     // Special Cases 
     // p1, q1 and p2 are colinear and p2 lies on segment p1q1 
     if (o1 == 0 && onSegment(p1, p2, q1)) return true; 
@@ -84,7 +128,7 @@ Point* lineLineIntersection(Line* line1, Line* line2){
         // The lines are parallel. This is simplified 
         // by returning a pair of FLT_MAX 
         // Point intersection = {-1, FLT_MAX, FLT_MAX};
-        return new Point {-1, FLT_MAX, FLT_MAX};
+        return new Point {-2, FLT_MAX, FLT_MAX};
     } 
     else
     { 
@@ -107,7 +151,7 @@ Point* lineLineIntersection(Point* p1, Point* q1, Point* p2, Point* q2){
   
     double determinant = a1*b2 - a2*b1; 
   
-    if (abs(determinant) < 0.001){ 
+    if (abs(determinant) < 0.00000000000001){ 
         // The lines are parallel. This is simplified 
         // by returning a pair of FLT_MAX 
         // Point intersection = {-1, FLT_MAX, FLT_MAX};
@@ -124,7 +168,7 @@ Point* lineLineIntersection(Point* p1, Point* q1, Point* p2, Point* q2){
 }
 
 bool isVertical(Point* p, Point* q){
-    return abs(p->x - q->x) < 0.0001;
+    return abs(p->x - q->x) < 0.00000000000001;
 }
 
 // int main(){

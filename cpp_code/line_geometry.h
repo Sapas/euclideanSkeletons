@@ -42,7 +42,9 @@ void swapLines(Line* line1, Line* line2);
 // Given three colinear points p, q, r, the function checks if 
 // point q lies on line segment 'pr' 
 bool onSegment(Point* p, Point* q, Point* r);
-  
+
+double angle(Point* p, Point* q, Point* r);
+
 // To find orientation of ordered triplet (p, q, r). 
 // The function returns following values 
 // 0 --> p, q and r are colinear 

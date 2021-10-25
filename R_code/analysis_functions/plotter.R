@@ -1,6 +1,18 @@
 library(pracma)
 library(tidyverse)
 
+plot_polygon <- function(filename){
+  polygon <- read.table(paste0("data/polygon/",filename,"_polygon.txt"), header = TRUE)
+  
+  p <- ggplot() +
+    geom_polygon(aes(x, y), polygon, alpha = 0.75) + 
+    #geom_point(aes(x, y), polygon, size = 0.02) +
+    geom_text(aes(x = x, y = y, label = id), polygon, size = 1) + 
+    coord_equal() +
+    theme_void()
+  ggsave(paste0("data/plots/",filename,".png"), p, width = 20, height = 20, units = "cm", dpi = 500)
+}
+
 plot_types <- function(filename){
 	polygon <- read.table(paste0("data/polygon/",filename,"_polygon.txt"), header = TRUE)
 	edges <- read.table(paste0("data/polygon/",filename,"_edges.txt"), header = TRUE)

@@ -1,13 +1,11 @@
 #!/bin/bash
 #SBATCH --job-name=bigRunNormalDist
 #SBATCH --time=48:00:00
-#SBATCH -p physical
-#SBATCH --constraint=physg5
 #SBATCH --mem=2G
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
-#SBATCH --array=1-5
+#SBATCH --array=2-100
 
 
 
@@ -17,5 +15,5 @@ module load cplex/12.8
 module load cmake/3.18.4
 
 # Call run, this one has 990 jobs
-cpp_code/skeleton runLine largeRunNormalDist ${SLURM_ARRAY_TASK_ID} true
-
+cpp_code/skeleton graphCreation $((${SLURM_ARRAY_TASK_ID} * 25)) $((${SLURM_ARRAY_TASK_ID} * 25)) 10 1 50 uniform true
+cpp_code/skeleton graphCreation $((${SLURM_ARRAY_TASK_ID} * 25)) $((${SLURM_ARRAY_TASK_ID} * 25)) 10 1 50 normal true

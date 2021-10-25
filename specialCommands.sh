@@ -7,11 +7,11 @@
 
 # ATTENTION: Only change the values under this statement
 
-n_start=40
+n_start=10
 n_end=40
 n_interval=10
 seed_min=1
-seed_max=10
+seed_max=50
 instance_type="uniform"
 run_name="smallTest"
 print_info="true"
@@ -28,17 +28,16 @@ g++ -std=c++11 cpp_code/skeleton.cpp -o cpp_code/skeleton
 
 # Create the run script
 cpp_code/skeleton setup $run_name $n_start $n_end $n_interval $seed_min $seed_max $(($seed_max - $seed_min + 1)) $instance_type
-# Create the graphs to run on
-cpp_code/skeleton graphCreation $n_start $n_end $n_interval $seed_min $seed_max $instance_type $print_info
 # Work out number of runs
-runs=0
-for ((n = $n_start; n <= $n_end; n = n + $n_interval)); do
-	runs=$(($runs+2))
-done
-# Now call the runs
-for ((n = 1; n <= $runs; n = n + 1)); do
-	cpp_code/skeleton runLine $run_name $n $print_info
-done
+cpp_code/skeleton runLine $run_name 2 $print_info
+# runs=0
+# for ((n = $n_start; n <= $n_end; n = n + $n_interval)); do
+# 	runs=$(($runs+2))
+# done
+# # Now call the runs
+# for ((n = 1; n <= $runs; n = n + 1)); do
+# 	cpp_code/skeleton runLine $run_name $n $print_info
+# done
 
 # # Now can call exec, create/read polygons and find skeleton edges
 # ./cpp_code/skeleton $n_start $n_end $n_interval $seed_min $seed_max $run_heuristic $print_info

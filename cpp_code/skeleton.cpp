@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <string>
 #include <sstream>
+#include <iomanip>
 #include "find_intersections.cpp"
 using namespace std;
 
@@ -54,12 +55,18 @@ struct Polygon{
 			delete skeleton[i];
 			skeleton[i] = NULL;
 		}
-		vertices.erase(vertices.begin(), vertices.end());
-		auxVertices.erase(auxVertices.begin(), auxVertices.end());
-		skeleton.erase(skeleton.begin(), skeleton.end());
-		convex.erase(convex.begin(), convex.end());
-		convex_id.erase(convex_id.begin(), convex_id.end());
-		steiner_edge.erase(steiner_edge.begin(), steiner_edge.end());
+		vertices.clear();
+		auxVertices.clear();
+		skeleton.clear();
+		convex.clear();
+		convex_id.clear();
+		steiner_edge.clear();
+		// vertices.erase(vertices.begin(), vertices.end());
+		// auxVertices.erase(auxVertices.begin(), auxVertices.end());
+		// skeleton.erase(skeleton.begin(), skeleton.end());
+		// convex.erase(convex.begin(), convex.end());
+		// convex_id.erase(convex_id.begin(), convex_id.end());
+		// steiner_edge.erase(steiner_edge.begin(), steiner_edge.end());
 	}
 };
 
@@ -136,7 +143,7 @@ void write_polygon(Polygon* polygon, string polygonName){
 	}
 	file << "id x y convex\n";
 	for(int i = 0; i < polygon->vertices.size(); i++){
-		file << (i + 1) << " " << polygon->vertices[i]->x << " " << polygon->vertices[i]->y;
+		file << setprecision(8) << (i + 1) << " " << polygon->vertices[i]->x << " " << polygon->vertices[i]->y;
 		if(polygon->convex[i] == 1){
 		 	file << " TRUE\n";
 		}else{
@@ -158,7 +165,7 @@ void write_polygon_edges(Polygon* polygon, string polygonName, bool heur){
 	}
 	file << "id x y xend yend type intersect_prune\n";
 	for(int i = 0; i < polygon->skeleton.size(); i++){
-		file << i + 1 << " " << polygon->skeleton[i]->start->x << " " << polygon->skeleton[i]->start->y << " " << polygon->skeleton[i]->end->x << " " << polygon->skeleton[i]->end->y;
+		file << setprecision(8) << i + 1 << " " << polygon->skeleton[i]->start->x << " " << polygon->skeleton[i]->start->y << " " << polygon->skeleton[i]->end->x << " " << polygon->skeleton[i]->end->y;
 		file << " \"Type " << polygon->skeleton[i]->type << "\" ";
 		if(polygon->skeleton[i]->pruned){
 			file << "TRUE\n";
@@ -205,10 +212,32 @@ void untangle_polygon(Polygon* polygon, int seed){
 
 				if(doIntersect(polygon->vertices[i_index], polygon->vertices[(i_index + 1) % n],
 					polygon->vertices[j_index], polygon->vertices[(j_index + 1) % n])){
+					// printf("Untangle %d (%.2f, %.2f) - (%.2f, %.2f), %d (%.2f, %.2f) - (%.2f, %.2f)\n", i_index,
+					// 													polygon->vertices[i_index]->x,
+					// 													polygon->vertices[i_index]->y,
+					// 													polygon->vertices[(i_index + 1) % n]->x,
+					// 													polygon->vertices[(i_index + 1) % n]->y,
+					// 													j_index,
+					// 													polygon->vertices[j_index]->x,
+					// 													polygon->vertices[j_index]->y,
+					// 													polygon->vertices[(j_index + 1) % n]->x,
+					// 													polygon->vertices[(j_index + 1) % n]->y);
 					crossings = true;
 					fix_crossing(polygon, min(i_index, j_index), max(i_index, j_index));
 				}
 			}
+		}
+	}
+}
+
+void remove_colinear(Polygon* polygon){
+	int n = polygon->vertices.size();
+	for(int i = 0; i < n; i++){
+		if(orientation(polygon->vertices[(i - 1 + n) % n], polygon->vertices[i], polygon->vertices[(i+1) % n]) == 0){
+			printf("Removing vertex %d since consecutive colinear points!\n", i);
+			delete polygon->vertices[i];
+			polygon->vertices.erase(polygon->vertices.begin() + i);
+			n--;
 		}
 	}
 }
@@ -229,6 +258,7 @@ void find_convex_points(Polygon* polygon){
 			minId = i;
 		}
 	}
+	// printf("Starting at %d, this is convex\n", polygon->vertices[minId]->id+1);
 	// printf("Min is %.4f %d\n",minPoint->y, minPoint->id);
 	// This point must be convex
 	int i = minId;
@@ -239,14 +269,18 @@ void find_convex_points(Polygon* polygon){
 	// Now keep on cycling from this point
 	i = (i + 1) % n;
 	while(i != minId){
+		double val = (polygon->vertices[i]->y - polygon->vertices[(i - 1 + n) % n]->y) * (polygon->vertices[(i + 1) % n]->x - polygon->vertices[i]->x) - 
+              (polygon->vertices[i]->x - polygon->vertices[(i - 1 + n) % n]->x) * (polygon->vertices[(i + 1) % n]->y - polygon->vertices[i]->y); 
 		newTurn = orientation(polygon->vertices[(i - 1 + n) % n], polygon->vertices[i], polygon->vertices[(i + 1) % n]);
 		if((newTurn == turn && add) || 
 			(newTurn != turn && !add)){
 			polygon->convex[i] = 1;
 			add = true;
+			// printf("Now at %d, this is convex, orientation was %d, angle %.20f, val %20f\n", polygon->vertices[i]->id+1, newTurn, angle(polygon->vertices[(i - 1 + n) % n], polygon->vertices[i], polygon->vertices[(i + 1) % n]), val);
 		}else{
 			polygon->convex[i] = 0;
 			add = false;
+			// printf("Now at %d, this is NOT convex, orientation was %d, angle %.20f, val %20f\n", polygon->vertices[i]->id+1, newTurn, angle(polygon->vertices[(i - 1 + n) % n], polygon->vertices[i], polygon->vertices[(i + 1) % n]), val);
 		}
 		turn = newTurn;
 		i = (i + 1) % n;
@@ -267,24 +301,59 @@ void find_convex_points(Polygon* polygon){
 void create_and_store_polygon(Polygon* polygon, int n, int seed, string generationMode, double maxCoord){
 	mt19937 mt_rand(seed);
 	std::normal_distribution<double> randPosition(0, maxCoord);
+	Point* newPoint;
 	for(int i = 0; i < n; i++){
+
 		if(generationMode == "uniform"){
-			polygon->vertices[i] = new Point{i,
-					maxCoord * (double) mt_rand() / RAND_MAX,
-					maxCoord * (double) mt_rand() / RAND_MAX};
+			newPoint = new Point{i,
+							round(maxCoord * (double) mt_rand() / RAND_MAX),
+							round(maxCoord * (double) mt_rand() / RAND_MAX)};
+			// polygon->vertices[i] = new Point{i,
+			// 		round(maxCoord * (double) mt_rand() / RAND_MAX),
+			// 		round(maxCoord * (double) mt_rand() / RAND_MAX)};
 
 		}else if(generationMode == "normal"){
-			polygon->vertices[i] = new Point{i,
-					randPosition(mt_rand),
-					randPosition(mt_rand)};
+			newPoint = new Point{i,
+									round(randPosition(mt_rand)),
+									round(randPosition(mt_rand))};
+			// polygon->vertices[i] = new Point{i,
+			// 		round(randPosition(mt_rand)),
+			// 		round(randPosition(mt_rand))};
 		
 		}else{
 			printf("Unkown generation mode for the vertices, stopping now!\n");
 			return;
 		}
-		
+
+		// Check that this point does not yet exist, and no three colinear points
+		bool good = true;
+		for(int j = 0; j < i && good; j++){
+			// Check point does not overlap
+			if(abs(polygon->vertices[j]->x - newPoint->x) < 0.001 &&
+				abs(polygon->vertices[j]->y - newPoint->y) < 0.001){good = false;}
+			// Check no colinear
+			for(int k = j + 1; k < i && good; k++){
+				if(orientation(polygon->vertices[j], polygon->vertices[k], newPoint) == 0){
+					printf("Colinear points! %d, points (%.2f, %.2f), (%.2f, %.2f), (%.2f, %.2f)\n", i, 
+						polygon->vertices[j]->x,
+						polygon->vertices[j]->y,
+						polygon->vertices[k]->x,
+						polygon->vertices[k]->y,
+						newPoint->x,
+						newPoint->y);
+					good = false;
+				}
+			}
+		}
+		if(good){
+			polygon->vertices[i] = newPoint;
+		}else{
+			delete newPoint;
+			i--;
+		}		
 	}
 	untangle_polygon(polygon, seed);
+	remove_colinear(polygon);
 	find_convex_points(polygon);
 	string polygonName = generationMode + "_n" + to_string(n) + "_s" + to_string(seed);
 	write_polygon(polygon, polygonName);
@@ -292,8 +361,10 @@ void create_and_store_polygon(Polygon* polygon, int n, int seed, string generati
 
 void read_and_store_polygon(Polygon* polygon, string polygonName){
 	string filename = "data/input_polygon/" + polygonName + "_polygon.txt";
+	// string filename = "data/polygon/" + polygonName + "_polygon.txt";
 	read_special_polygon(polygon, filename);
 	untangle_polygon(polygon, 1);
+	remove_colinear(polygon);
 	find_convex_points(polygon);
 	write_polygon(polygon, polygonName);
 }
@@ -338,8 +409,50 @@ void stp_plotter(string filename, Polygon* polygon, int type){
 	file << "END\n\n";
 	file << "SECTION Graph\n";
 	file << "Nodes " << polygon->num_convex + int(polygon->skeleton.size()) << "\n";
-	file << "Edges " << int(polygon->steiner_edge.size()) << "\n";
 	
+	// First one pass to figure out how many edges will be in the output
+	int totalEdges = 0;
+	for(int i = 0; i < polygon->steiner_edge.size(); i++){
+		if(type == 0 && 
+			((polygon->steiner_edge[i].first > polygon->num_convex &&
+				polygon->skeleton[polygon->steiner_edge[i].first - polygon->num_convex]->type >= 3) ||
+			(polygon->steiner_edge[i].second > polygon->num_convex &&
+				polygon->skeleton[polygon->steiner_edge[i].second - polygon->num_convex]->type >= 3))){
+			continue;
+		}
+		else if(type == 1 && 
+			((polygon->steiner_edge[i].first > polygon->num_convex &&
+				polygon->skeleton[polygon->steiner_edge[i].first - polygon->num_convex]->type >= 4) ||
+			(polygon->steiner_edge[i].second > polygon->num_convex &&
+				polygon->skeleton[polygon->steiner_edge[i].second - polygon->num_convex]->type >= 4))){
+			continue;
+		}
+		else if(type == 2 && 
+			((polygon->steiner_edge[i].first > polygon->num_convex &&
+				polygon->skeleton[polygon->steiner_edge[i].first - polygon->num_convex]->type >= 4) ||
+			(polygon->steiner_edge[i].second > polygon->num_convex &&
+				polygon->skeleton[polygon->steiner_edge[i].second - polygon->num_convex]->type >= 4))){
+			continue;
+		}
+		else if(type == 2 &&
+			((polygon->steiner_edge[i].first > polygon->num_convex && 
+			polygon->skeleton[polygon->steiner_edge[i].first - polygon->num_convex]->pruned) ||
+			(polygon->steiner_edge[i].second > polygon->num_convex && 
+			polygon->skeleton[polygon->steiner_edge[i].second - polygon->num_convex]->pruned))){
+			continue;
+		}
+		else if(type == 4 &&
+			((polygon->steiner_edge[i].first > polygon->num_convex && 
+			polygon->skeleton[polygon->steiner_edge[i].first - polygon->num_convex]->pruned) ||
+			(polygon->steiner_edge[i].second > polygon->num_convex && 
+			polygon->skeleton[polygon->steiner_edge[i].second - polygon->num_convex]->pruned))){
+			continue;
+		}
+		totalEdges++;
+	}
+
+	file << "Edges " << totalEdges << "\n";
+
 	for(int i = 0; i < polygon->steiner_edge.size(); i++){
 		if(type == 0 && 
 			((polygon->steiner_edge[i].first > polygon->num_convex &&
@@ -476,7 +589,15 @@ bool can_see(Polygon* polygon, int i, int j){
 			line_angle(polygon->vertices[j], polygon->vertices[j-1], polygon->vertices[i])){
 		return false;
 	}
-
+	// printf("Passed angle test! For point %d (%d) got orientations %d - %d, for point %d (%d) got orientations %d - %d\n",
+	// 	i+1,
+	// 	polygon->convex[i],
+	// 	orientation(polygon->vertices[(i-1+n)%n], polygon->vertices[i], polygon->vertices[i+1]),
+	// 	orientation(polygon->vertices[(i-1+n)%n], polygon->vertices[i], polygon->vertices[j]),
+	// 	j+1,
+	// 	polygon->convex[j],
+	// 	orientation(polygon->vertices[j-1], polygon->vertices[j], polygon->vertices[(j+1) % n]),
+	// 	orientation(polygon->vertices[j-1], polygon->vertices[j], polygon->vertices[i]));
 	// Check every edge for intersections
 	for(int k = 0; k < n; k++){
 		// if index is 1 smaller or same, skip (they share a point)
@@ -512,7 +633,7 @@ void extend_skeleton_edge(Polygon* polygon, int edgeId, int i, int j){
 			j == k){continue;}
 		// Find intersection of lines (should exist)
 		intersection = lineLineIntersection(polygon->vertices[i], polygon->vertices[j], polygon->vertices[k], polygon->vertices[(k+1) % n]);
-		// If id of intersection is -1, means lines are parallel, skip
+		// If id of intersection is -2, means lines are parallel, skip
 		if(intersection->id == -2){
 			delete intersection;
 			continue;
@@ -571,12 +692,16 @@ void extend_skeleton_edge(Polygon* polygon, int edgeId, int i, int j){
 			polygon->skeleton[edgeId]->start = up;
 			polygon->skeleton[edgeId]->end = down;
 			polygon->auxVertices.push_back(up);
-			polygon->auxVertices.push_back(down);	
+			polygon->auxVertices.push_back(down);
+			if(up == NULL){printf("Warning, looking to add a NULL pointer for skeleton %d to the up in type 3 edge! Should not happen, stopping here...\n", edgeId);exit(0);}
+			if(down == NULL){printf("Warning, looking to add a NULL pointer for skeleton %d to the down in type 3 edge! Should not happen, stopping here...\n", edgeId);exit(0);}
 		}else{
 			polygon->skeleton[edgeId]->start = left;
 			polygon->skeleton[edgeId]->end = right;
 			polygon->auxVertices.push_back(left);
-			polygon->auxVertices.push_back(right);	
+			polygon->auxVertices.push_back(right);
+			if(right == NULL){printf("Warning, looking to add a NULL pointer for skeleton %d to the right in type 3 edge! Should not happen, stopping here...\n", edgeId);exit(0);}
+			if(left == NULL){printf("Warning, looking to add a NULL pointer for skeleton %d to the left in type 3 edge! Should not happen, stopping here...\n", edgeId);exit(0);}
 		}
 
 	}
@@ -584,10 +709,12 @@ void extend_skeleton_edge(Polygon* polygon, int edgeId, int i, int j){
 	if(polygon->skeleton[edgeId]->type == 2){
 		if(isVertical(polygon->vertices[i],polygon->vertices[j])){
 			if(polygon->skeleton[edgeId]->start->y < polygon->skeleton[edgeId]->end->y){
+				if(up == NULL){printf("Warning, looking to add a NULL pointer for skeleton %d (%d, %d) to the up in type 2 edge! Should not happen, stopping here...\n", edgeId, polygon->skeleton[edgeId]->start->id, polygon->skeleton[edgeId]->end->id);exit(0);}
 				polygon->skeleton[edgeId]->end = up;
 				polygon->auxVertices.push_back(up);
 				delete down;
 			}else{
+				if(down == NULL){printf("Warning, looking to add a NULL pointer for skeleton %d (%d, %d) to the down in type 2 edge! Should not happen, stopping here...\n", edgeId, polygon->skeleton[edgeId]->start->id, polygon->skeleton[edgeId]->end->id);exit(0);}
 				delete up;
 				polygon->skeleton[edgeId]->end = down;
 				polygon->auxVertices.push_back(down);
@@ -595,10 +722,12 @@ void extend_skeleton_edge(Polygon* polygon, int edgeId, int i, int j){
 		}else{
 			if(polygon->skeleton[edgeId]->start->x < polygon->skeleton[edgeId]->end->x){
 				delete left;
+				if(right == NULL){printf("Warning, looking to add a NULL pointer for skeleton %d (%d, %d) to the right in type 2 edge! Should not happen, stopping here...\n", edgeId, polygon->skeleton[edgeId]->start->id, polygon->skeleton[edgeId]->end->id);exit(0);}
 				polygon->skeleton[edgeId]->end = right;
 				polygon->auxVertices.push_back(right);
 			}else{
 				delete right;
+				if(left == NULL){printf("Warning, looking to add a NULL pointer for skeleton %d (%d, %d) to the left in type 2 edge! Should not happen, stopping here...\n", edgeId, polygon->skeleton[edgeId]->start->id, polygon->skeleton[edgeId]->end->id);exit(0);}
 				polygon->skeleton[edgeId]->end = left;
 				polygon->auxVertices.push_back(left);
 			}
@@ -651,25 +780,25 @@ void extend_aux_edge(Polygon* polygon, int edgeId){
 		
 		// It is, check if better choice
 		if(right && intersection->x > polygon->skeleton[edgeId]->end->x && 
-			abs(intersection->x - polygon->skeleton[edgeId]->end->x) > 0.001 && 
+			abs(intersection->x - polygon->skeleton[edgeId]->end->x) > 0.00000000000001 && 
 			(extended == NULL || intersection->x < extended->x)){
 			delete extended;
 			extended = intersection;
 		}
 		else if(left && intersection->x < polygon->skeleton[edgeId]->end->x &&
-			abs(intersection->x - polygon->skeleton[edgeId]->end->x) > 0.001 && 
+			abs(intersection->x - polygon->skeleton[edgeId]->end->x) > 0.00000000000001 && 
 			(extended == NULL || intersection->x > extended->x)){
 			delete extended;			
 			extended = intersection;
 		}
 		else if(up && intersection->y > polygon->skeleton[edgeId]->end->y &&
-			abs(intersection->y - polygon->skeleton[edgeId]->end->y) > 0.001 && 
+			abs(intersection->y - polygon->skeleton[edgeId]->end->y) > 0.00000000000001 && 
 			(extended == NULL || intersection->y < extended->y)){
 			delete extended;		
 			extended = intersection;
 		}
 		else if(down && intersection->y < polygon->skeleton[edgeId]->end->y &&
-			abs(intersection->y - polygon->skeleton[edgeId]->end->y) > 0.001 && 
+			abs(intersection->y - polygon->skeleton[edgeId]->end->y) > 0.00000000000001 && 
 			(extended == NULL || intersection->y > extended->y)){
 			delete extended;	
 			extended = intersection;
@@ -677,7 +806,8 @@ void extend_aux_edge(Polygon* polygon, int edgeId){
 			delete intersection;
 		}
 	}
-
+	if(extended == NULL){printf("Warning, looking to add a NULL pointer for skeleton %d in type 4 edge! Should not happen, stopping here...\n", edgeId); exit(0);}
+				
 	polygon->skeleton[edgeId]->end = extended;
 	polygon->auxVertices.push_back(extended);
 
@@ -687,6 +817,7 @@ void add_aux_edge(Polygon* polygon, Point* start, Point* end, int side){
 	// Cycle through vertices, see if this is an concave vertex than can be seen and has the right rotation
 	int n = polygon->vertices.size();
 	for(int i = 0; i < n; i++){
+		// printf("%d ", i);
 		// Only care if concave
 		if(polygon->convex[i]){continue;}
 		// Only are if counter-clockwise turn
@@ -698,6 +829,12 @@ void add_aux_edge(Polygon* polygon, Point* start, Point* end, int side){
 			orientation(end, polygon->vertices[i], polygon->vertices[(i - 1 + n) % n]) != side){
 			continue;
 		}
+		// printf("\n%d orientation %d\n", i+1, orientation(start, end, polygon->vertices[i]));
+		// if(i == 28){
+		// 	double val = (end->y - start->y) * (polygon->vertices[i]->x - end->x) - 
+  //             				(end->x - start->x) * (polygon->vertices[i]->y - end->y); 
+  //           printf("Got val %.20f\n", val);
+		// }
 		// if(orientation(end, polygon->vertices[i], polygon->vertices[(i + 1) % n]) != side ||
 		// 	orientation(end, polygon->vertices[i], polygon->vertices[(i - 1 + n) % n]) != side){
 		// 	continue;
@@ -718,10 +855,23 @@ void add_aux_edge(Polygon* polygon, Point* start, Point* end, int side){
 				i == j){
 				continue;
 			}
+
+			// if(i == 28 && j == 100){printf("Checking %d against %d %d, orientations %d %d %d %d\n", i+1, j+1, j+2, orientation(end, polygon->vertices[i], polygon->vertices[j]),
+			// 																				orientation(end, polygon->vertices[i], polygon->vertices[(j + 1) % n]),
+			// 																				orientation(end, polygon->vertices[j], polygon->vertices[(j + 1) % n]),
+			// 																				orientation(polygon->vertices[i], polygon->vertices[j], polygon->vertices[(j + 1) % n]));}
+
 			if(doIntersect(end, polygon->vertices[i], polygon->vertices[j], polygon->vertices[(j + 1) % n])){
-				// Check if this is line that end point is on (and should ignore)
-				// Simply check if colinear
-				if(orientation(end, polygon->vertices[j], polygon->vertices[(j + 1) % n]) == 0){
+				// printf("%d orientation %d, %d intersects\n", i+1, orientation(end, polygon->vertices[j], polygon->vertices[(j + 1) % n]), j+1);
+				// Check if this is line that end point is on (Simply should ignore)
+				// Have to also make sure that edge is not simply going outside the polygon
+				if(orientation(end, polygon->vertices[j], polygon->vertices[(j + 1) % n]) == 0 &&
+					orientation(start, end, polygon->vertices[j]) == orientation(polygon->vertices[i], end, polygon->vertices[j]) &&
+					orientation(start, end, polygon->vertices[(j + 1) % n]) == orientation(polygon->vertices[i], end, polygon->vertices[(j + 1) % n])){
+					// printf("%d orientation %d, %d intersects, it's ok as colinear with %d %d\n", i+1, orientation(end, polygon->vertices[j], polygon->vertices[(j + 1) % n]), j+1, j+1, j+2);
+					// double val = (end->y - polygon->vertices[(j + 1) % n]->y) * (polygon->vertices[j]->x - end->x) - 
+     //          						(end->x - polygon->vertices[(j + 1) % n]->x) * (polygon->vertices[j]->y - end->y); 
+     //          		printf("Colinear val is (%d) %.20f\n", abs(val) < 0.00001, val);
 					continue;
 				}
 				// Otherwise this is a plain old intersection, discard this vertgex
@@ -730,10 +880,19 @@ void add_aux_edge(Polygon* polygon, Point* start, Point* end, int side){
 			}
 		}
 		if(ok){
+			// printf("Looking at vertex %d\n", i + 1);
+			// printf("Angle is %.20f, orientation is %d\n", angle(start, end, polygon->vertices[i]), orientation(start, end, polygon->vertices[i]));
 			// Have a new edge, add it and extend it. Also need to call on the same procedure!
+			// printf("New aux edge from (%.20f, %.20f) - (%d)(%.20f, %.20f)\n", end->x, end->y, polygon->vertices[i]->id + 1, polygon->vertices[i]->x, polygon->vertices[i]->y);
 			polygon->skeleton.push_back(new SkeletonLine{int(polygon->skeleton.size()),end,polygon->vertices[i],4, false});
+			// printf("Extend\n");
 			extend_aux_edge(polygon, int(polygon->skeleton.size()) - 1);
+			// printf("Extended to aux edge from (%.20f, %.20f) - (%.20f, %.20f)\n", polygon->skeleton.back()->start->x,
+			// 																	polygon->skeleton.back()->start->y,
+			// 																	polygon->skeleton.back()->end->x,
+			// 																	polygon->skeleton.back()->end->y);
 			// And keep going!
+			// printf("Add aux\n");
 			add_aux_edge(polygon, polygon->skeleton.back()->start, polygon->skeleton.back()->end, side);
 
 		}
@@ -745,7 +904,7 @@ void find_skeleton_edges(Polygon* polygon, bool heur){
 	int n = polygon->vertices.size();
 	for(int i = 0; i < n; i++){
 		for(int j = i + 1; j < n; j++){
-
+			// printf("%d (%d) %d (%d)\n", i+1, polygon->convex[i], j+1, polygon->convex[j]);
 			// Type 1: both convex
 			if(polygon->convex[i] && polygon->convex[j]){
 				// If can see, add to list. Cannot extend, so that is all
@@ -779,7 +938,7 @@ void find_skeleton_edges(Polygon* polygon, bool heur){
 				}
 				// Time to add then extend
 				int newId = int(polygon->skeleton.size());
-				polygon->skeleton.push_back(new SkeletonLine{newId,polygon->vertices[convex],polygon->vertices[concave],2, false});
+				polygon->skeleton.push_back(new SkeletonLine{newId,polygon->vertices[convex],polygon->vertices[concave], 2, false});
 				extend_skeleton_edge(polygon, polygon->skeleton.size()-1, i, j);
 				polygon->steiner_edge.push_back(make_pair(polygon->convex_id[convex], newId + polygon->num_convex));
 				// Add possible aux edge
@@ -796,6 +955,7 @@ void find_skeleton_edges(Polygon* polygon, bool heur){
 			}
 			// Type 3: Two concave on separate sides
 			else{
+				// printf("Type 3\n");
 				// Have two concave. Want them on separate sides.
 				// If adjacent, this can't be the case
 				if(adjacent(n,i,j)){continue;}
@@ -812,14 +972,16 @@ void find_skeleton_edges(Polygon* polygon, bool heur){
 
 					continue;
 				}
+				// printf("Continue\n");
 				// Extend both sides, and add!
 				polygon->skeleton.push_back(new SkeletonLine{int(polygon->skeleton.size()),polygon->vertices[i],polygon->vertices[j],3, false});
 				extend_skeleton_edge(polygon, polygon->skeleton.size()-1, i, j);
 				int currId = polygon->skeleton.size() - 1;
 				if(!heur){
+					// printf("Add aux edge in direction of %d\n", polygon->skeleton[currId]->end->id + 1);
 					add_aux_edge(polygon, polygon->skeleton[currId]->start, polygon->skeleton[currId]->end,
 						orientation(polygon->vertices[i], polygon->vertices[j], polygon->vertices[j-1]));
-
+					// printf("Add aux edge in direction of %d\n", polygon->skeleton[currId]->start->id + 1);
 					add_aux_edge(polygon, polygon->skeleton[currId]->end, polygon->skeleton[currId]->start,
 						orientation(polygon->vertices[j], polygon->vertices[i], polygon->vertices[i+1]));
 				}
@@ -837,27 +999,46 @@ void prune_skeleton_edges(Polygon* polygon){
 	// intersects
 	int n = polygon->skeleton.size();
 	for(int i = 0; i < n; i++){
+		// printf("%d(%d)\n", i, n);
 		for(int j = 0; j < n; j++){
+			// printf("\n%d %d (%d)", i, j, n);
 			if(i == j){continue;}
 			// Check if i can be pruned due to j
 			// If j has been pruned, skip this
+			// printf(" - Check 1\n");
 			if(polygon->skeleton[j]->pruned){continue;}
 			// Some types allow us to skip
+			// printf(" - Check 2\n");
 			if(polygon->skeleton[i]->type == 1){break;}
 			// If this is type 2, this edge must also start or end on the convex vertex
+			// printf(" - Check 3\n");
 			if(polygon->skeleton[i]->type == 2){
-				if((abs(polygon->skeleton[i]->start->x - polygon->skeleton[j]->start->x) > 0.001 ||
-					abs(polygon->skeleton[i]->start->y - polygon->skeleton[j]->start->y) > 0.001) &&
-					(abs(polygon->skeleton[i]->start->x - polygon->skeleton[j]->end->x) > 0.001 ||
-					abs(polygon->skeleton[i]->start->y - polygon->skeleton[j]->end->y) > 0.001)){
+				// printf(" - Check 3b\n");
+				// printf("%d\n", polygon->skeleton[j]->type);
+				// printf(" %.2f \n", polygon->skeleton[i]->start->x);
+				// printf(" %.2f \n", polygon->skeleton[i]->start->y);
+				// printf(" %.2f \n", polygon->skeleton[i]->end->x);
+				// printf(" %.2f \n", polygon->skeleton[i]->end->y);
+				// printf(" %.2f \n", polygon->skeleton[j]->start->x);
+				// printf(" %.2f \n", polygon->skeleton[j]->start->y);
+				// printf(" %.2f \n", polygon->skeleton[j]->end->x);
+				// printf(" %.2f \n", polygon->skeleton[j]->end->y);
+				
+				if((abs(polygon->skeleton[i]->start->x - polygon->skeleton[j]->start->x) > 0.00000000000001 ||
+					abs(polygon->skeleton[i]->start->y - polygon->skeleton[j]->start->y) > 0.00000000000001) &&
+					(abs(polygon->skeleton[i]->start->x - polygon->skeleton[j]->end->x) > 0.00000000000001 ||
+					abs(polygon->skeleton[i]->start->y - polygon->skeleton[j]->end->y) > 0.00000000000001)){
+					// printf(" - do not prune!");
 					continue;
 				}
 			}
-			// Nothing left but to check agains every other edge
+			// printf(" - finish");
+			// Nothing left but to check against every other edge
 			// Keep looking until find an edge that intersect with i but not with j
 			// If do not find such an edge, can prune i
 			bool prune = true;
 			for(int k = 0; k < n; k++){
+				// printf("%d %d %d\n", i, j, k);
 				if(doIntersect(polygon->skeleton[i]->start, polygon->skeleton[i]->end,
 					polygon->skeleton[k]->start, polygon->skeleton[k]->end) &&
 					!doIntersect(polygon->skeleton[j]->start, polygon->skeleton[j]->end,
@@ -881,6 +1062,7 @@ void stp_intersections(Polygon* polygon){
 	int n = polygon->skeleton.size();
 	for(int i = 0; i < n; i++){
 		for(int j = i + 1; j < n; j++){
+			// printf("%d %d\n", i, j);
 			if(doIntersect(polygon->skeleton[i]->start, polygon->skeleton[i]->end,
 							polygon->skeleton[j]->start, polygon->skeleton[j]->end)){
 				polygon->steiner_edge.push_back(make_pair(v + i,v + j));
@@ -928,43 +1110,58 @@ void create_skeleton(Polygon* polygon, bool heur, bool print_info, string polygo
 	// 	t = clock() - t;
 	// 	file << " FALSE " << to_string(((float)t)/CLOCKS_PER_SEC);
 	// }
-
-
-
 	t = clock();
 	find_convex_points(polygon);
 	t = clock() - t;
 	if(print_info){printf("Determined convex points:    %.5fs\n",((float)t)/CLOCKS_PER_SEC);}
-	if(file.is_open()){file << " " << to_string(((float)t)/CLOCKS_PER_SEC);}
-
-	if(outputFilename != ""){file.open(outputFilename, ios_base::app);}
+	if(outputFilename != ""){
+		file.open(outputFilename, ios_base::app);
+		file << " " << to_string(((float)t)/CLOCKS_PER_SEC);
+		file.close();
+	}
 
 	t = clock();
 	find_skeleton_edges(polygon, heur);
 	t = clock() - t;
 	if(print_info){printf("Found skeleton edges:        %.5fs\n",((float)t)/CLOCKS_PER_SEC);}
-	if(file.is_open()){file << " " << to_string(((float)t)/CLOCKS_PER_SEC);}
+	if(outputFilename != ""){
+		file.open(outputFilename, ios_base::app);
+		file << " " << to_string(((float)t)/CLOCKS_PER_SEC);
+		file.close();
+	}
 
 	t = clock();
 	prune_skeleton_edges(polygon);
 	t = clock() - t;
 	if(print_info){printf("Prunned polygon:             %.5fs\n",((float)t)/CLOCKS_PER_SEC);}
-	if(file.is_open()){file << " " << to_string(((float)t)/CLOCKS_PER_SEC);}
+	if(outputFilename != ""){
+		file.open(outputFilename, ios_base::app);
+		file << " " << to_string(((float)t)/CLOCKS_PER_SEC);
+		file.close();
+	}
 
 	t = clock();
 	stp_intersections(polygon);
 	t = clock() - t;
 	if(print_info){printf("Found STP intersections:     %.5fs\n",((float)t)/CLOCKS_PER_SEC);}
-	if(file.is_open()){file << " " << to_string(((float)t)/CLOCKS_PER_SEC);}
+	if(outputFilename != ""){
+		file.open(outputFilename, ios_base::app);
+		file << " " << to_string(((float)t)/CLOCKS_PER_SEC);
+		file.close();
+	}
 
 	t = clock();
 	// polygon_plotter(name, polygon, heur);
 	write_polygon_edges(polygon, polygonName, heur);
 	t = clock() - t;
 	if(print_info){printf("Polygon info to text file:   %.5fs\n",((float)t)/CLOCKS_PER_SEC);}
-	if(file.is_open()){file << " " << to_string(((float)t)/CLOCKS_PER_SEC);}
-	t = clock();
+	if(outputFilename != ""){
+		file.open(outputFilename, ios_base::app);
+		file << " " << to_string(((float)t)/CLOCKS_PER_SEC);
+		file.close();
+	}
 
+	t = clock();
 	if(heur){
 		stp_plotter(polygonName, polygon, 0);
 		stp_plotter(polygonName, polygon, 1);
@@ -976,12 +1173,19 @@ void create_skeleton(Polygon* polygon, bool heur, bool print_info, string polygo
 
 	t = clock() - t;
 	if(print_info){printf("Polygon info to STP file:    %.5fs\n",((float)t)/CLOCKS_PER_SEC);}
-	if(file.is_open()){file << " " << to_string(((float)t)/CLOCKS_PER_SEC);}
+	if(outputFilename != ""){
+		file.open(outputFilename, ios_base::app);
+		file << " " << to_string(((float)t)/CLOCKS_PER_SEC);
+		file.close();
+	}
 
 	t = clock() - start;
 	if(print_info){printf("Total execution time:        %.5fs\n\n",((float)t)/CLOCKS_PER_SEC);}
-	if(file.is_open()){file << " " << to_string(((float)t)/CLOCKS_PER_SEC) << "\n";}
-
+	if(outputFilename != ""){
+		file.open(outputFilename, ios_base::app);
+		file << " " << to_string(((float)t)/CLOCKS_PER_SEC) << "\n";
+		file.close();
+	}
 	// Deal with memory
 	// delete polygon;
 
@@ -1037,8 +1241,8 @@ int main(int argc, char** argv){
 		for(int n = start; n <= end; n += interval){
 			for(int s = seed_min; s <= seed_max; s += seed_per_run){
 				outputFile.open(setupFile, ios_base::app);
-				outputFile << to_string(n) << " " << to_string(s) << "-" << to_string(min(s + seed_per_run, seed_max)) << " " << generationMode << " TRUE\n";
-				outputFile << to_string(n) << " " << to_string(s) << "-" << to_string(min(s + seed_per_run, seed_max)) << " " << generationMode << " FALSE\n";
+				outputFile << to_string(n) << " " << to_string(s) << "-" << to_string(min(s + seed_per_run - 1, seed_max)) << " " << generationMode << " TRUE\n";
+				outputFile << to_string(n) << " " << to_string(s) << "-" << to_string(min(s + seed_per_run - 1, seed_max)) << " " << generationMode << " FALSE\n";
 				jobs += 2;
 				outputFile.close();
 			}
@@ -1085,7 +1289,7 @@ int main(int argc, char** argv){
 		// Now do the work, which for this mode simply is creation of graphs and storage
 		for(int n = start; n <= end; n += interval){
 			for(int s = seed_min; s <= seed_max; s++){
-				if(print_info){printf("Working on size %d and seed %d\n", n, s);}
+				if(print_info){printf("Working on graph creation, size %d and seed %d\n", n, s);}
 				polygon = new Polygon(n);
 				create_and_store_polygon(polygon, n, s, generationMode, 1000000);
 				delete polygon;
@@ -1212,10 +1416,11 @@ int main(int argc, char** argv){
 			string polygonName = generationMode + "_n" + size + "_s" + to_string(seed);
 			string polygonFilePath = "data/polygon/" + polygonName + "_polygon.txt";
 			read_polygon(polygon, polygonFilePath);
+
 			if(print_info){printf("Read polygon in, start finding edges\n");}
 			// Do begining of output to file
 			outputFile.open(outputFilename, ios_base::app);
-			outputFile << size << " " << to_string(seed) << " " << generationMode << " " << val << " ";
+			outputFile << size << " " << to_string(seed) << " " << generationMode << " " << val;
 			outputFile.close(); 
 			create_skeleton(polygon, heur, print_info, polygonName, outputFilename);
 			delete polygon;

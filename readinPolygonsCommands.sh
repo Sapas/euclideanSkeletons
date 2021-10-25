@@ -16,18 +16,10 @@ print_info="false"
 start=`date +%s`
 
 # First get skeletons, start by compiling (note need to install g++, if not command should appear on screen)
-g++ cpp_code/skeleton.cpp -o cpp_code/skeleton
+g++ -std=c++11 cpp_code/skeleton.cpp -o cpp_code/skeleton
 
 # Now can call exec, create/read polygons and find skeleton edges
-./cpp_code/skeleton $polygon_name $print_info
-
-
-./steiner_solver/staynerd data/STP_input/${polygon_name}_STP_format_1-2.txt 100 1 data/STP_output/${polygon_name}_output_STP_format_1-2.txt 
-#./steiner_solver/staynerd data/STP_input/${polygon_name}_STP_format_1-2-3.txt 100 1 data/STP_output/${polygon_name}_output_STP_format_1-2-3.txt 
-#./steiner_solver/staynerd data/STP_input/${polygon_name}_STP_format_1-2-3.txt 100 1 data/STP_output/${polygon_name}_output_STP_format_1-2-3_pruned.txt 
-#./steiner_solver/staynerd data/STP_input/${polygon_name}_STP_format_all.txt 100 1 data/STP_output/${polygon_name}_output_STP_format_all.txt 
-#./steiner_solver/staynerd data/STP_input/${polygon_name}_STP_format_pruned.txt 100 1 data/STP_output/${polygon_name}_output_STP_format_pruned.txt 
-
+cpp_code/skeleton runReadin $polygon_name $print_info
 
 #Rscript R_code/readinPolygonsAnalysis.R $polygon_name
 
